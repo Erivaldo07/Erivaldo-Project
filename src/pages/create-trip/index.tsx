@@ -1,4 +1,4 @@
-import { useState, type FormEvent, useEffect } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
@@ -28,12 +28,6 @@ export function CreateTripPage() {
   })
 
 
-  // Efeito para adicionar email de exemplo (apenas desenvolvimento)
-  useEffect(() => {
-    // Comentado para não poluir
-    // setEmailToInvite(['erivaldomanuelz35@gmail.com'])
-  }, [])
-
   // Handlers
   const openGuestsInput = () => setIsGuestsInputOpen(true)
   const closeGuestsInput = () => setIsGuestsInputOpen(false)
@@ -42,27 +36,14 @@ export function CreateTripPage() {
   const openConfirmTripModal = () => setIsConfirmTripModalOpen(true)
   const closeConfirmTripModal = () => setIsConfirmTripModalOpen(false)
 
-  const addNewEmailToInvite = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const email = data.get('email')?.toString()?.trim()
-
+  // FUNÇÃO CORRIGIDA - Agora recebe string diretamente
+  const addNewEmailToInvite = (email: string) => {
     if (!email) return
-
-    // Validação de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      alert('Por favor, insira um email válido')
-      return
-    }
-
     if (emailToInvite.includes(email)) {
       alert('Este email já foi convidado')
       return
     }
-
     setEmailToInvite([...emailToInvite, email])
-    event.currentTarget.reset()
   }
 
   const removeEmailToInvite = (emailToRemove: string) => {
@@ -72,7 +53,6 @@ export function CreateTripPage() {
   const createTrip = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    // Validar se tem convidados
     if (emailToInvite.length === 0) {
       alert('Adicione pelo menos um convidado para criar a viagem')
       return
@@ -81,18 +61,15 @@ export function CreateTripPage() {
 
 
     try {
-      // Simular chamada à API
       await new Promise(resolve => setTimeout(resolve, 2000))
-
-      // Navegar para página da viagem
       navigate('/trips/123')
     } catch (error) {
       console.error('Erro ao criar viagem:', error)
       alert('Ocorreu um erro ao criar a viagem. Tente novamente.')
-    } 
-  }
+    
 
-  // Verificar se o formulário está preenchido
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4">
@@ -130,7 +107,7 @@ export function CreateTripPage() {
           transition={{ delay: 0.3 }}
           className='space-y-4'
         >
-          {/* Step 1: Destino e Data */}
+          {/* Step 1 */}
           <div className="relative">
             <DestinationAndDateStep
               closeGuestsInput={closeGuestsInput}
@@ -139,13 +116,12 @@ export function CreateTripPage() {
               onTripDataChange={setTripData}
             />
 
-            {/* Indicador de passo */}
             <div className="absolute -top-3 left-4 bg-zinc-800 px-2 py-0.5 rounded-full text-xs text-zinc-400">
               Passo 1
             </div>
           </div>
 
-          {/* Step 2: Convidados (aparece após passo 1) */}
+          {/* Step 2 */}
           <AnimatePresence>
             {isGuestsInputOpen && (
               <motion.div
@@ -161,7 +137,6 @@ export function CreateTripPage() {
                   openGuestsModal={openGuestsModal}
                 />
 
-                {/* Indicador de passo */}
                 <div className="absolute -top-3 left-4 bg-zinc-800 px-2 py-0.5 rounded-full text-xs text-zinc-400">
                   Passo 2
                 </div>
@@ -214,7 +189,7 @@ export function CreateTripPage() {
           <InviteGuestsModal
             emailToInvite={emailToInvite}
             closeGuestsModel={closeGuestsModal}
-            addNewEmailToInvite={addNewEmailToInvite}
+            addNewEmailToInvite={addNewEmailToInvite} // Passando a função corrigida
             removeEmailToInvite={removeEmailToInvite}
           />
         )}

@@ -5,7 +5,7 @@ import { useState, type FormEvent, useRef, useEffect } from "react"
 interface InviteGuestsModalProps {
     emailToInvite: string[]
     closeGuestsModel: () => void
-    addNewEmailToInvite: (event: FormEvent<HTMLFormElement>) => void
+    addNewEmailToInvite: (email: string) => void // Alterado para receber string
     removeEmailToInvite: (emailToRemove: string) => void
 }
 
@@ -61,15 +61,8 @@ export function InviteGuestsModal({
 
         setIsSubmitting(true)
 
-        // Criar evento sintético para passar para o pai
-        const syntheticEvent = {
-            preventDefault: () => {},
-            currentTarget: {
-                reset: () => {}
-            }
-        } as FormEvent<HTMLFormElement>
-
-        addNewEmailToInvite(syntheticEvent)
+        // Chamar diretamente a função do pai com o email
+        addNewEmailToInvite(trimmedEmail)
 
         // Limpar e mostrar sucesso
         setEmail("")
