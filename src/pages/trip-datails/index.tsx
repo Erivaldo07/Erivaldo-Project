@@ -7,10 +7,19 @@ import { Guest } from "./guest";
 import { Activities } from "./activities";
 import { Header } from "./header";
 import { Button } from "../../components/button";
+import { Toast } from "../../components/toast";
+import { ConfirmationModal } from "../../components/confirmation-modal";
+
+interface ToastState {
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  isVisible: boolean;
+}
 
 export function TripDetailsPage() {
     const navigate = useNavigate();
     const [isCreateActivityModalOpen, setIsCreateActivityModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const [tripStats, setTripStats] = useState({
         activities: 12,
@@ -19,8 +28,50 @@ export function TripDetailsPage() {
         days: 7
     });
 
-    // Simular carregamento de dados
+    // Estado para Toast
+    const [toast, setToast] = useState<ToastState>({
+        message: '',
+        type: 'info',
+        isVisible: false
+    });
 
+    // Estado para Modal de Confirmação
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning' as 'danger' | 'warning' | 'info',
+        onConfirm: () => {}
+    });
+
+    // Handlers do Toast
+    const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+        setToast({ message, type, isVisible: true });
+    };
+
+    const hideToast = () => {
+        setToast(prev => ({ ...prev, isVisible: false }));
+    };
+
+    // Handlers do Modal de Confirmação
+    const showConfirmation = (
+        title: string,
+        message: string,
+        onConfirm: () => void,
+        type: 'danger' | 'warning' | 'info' = 'warning'
+    ) => {
+        setConfirmationModal({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm
+        });
+    };
+
+    const hideConfirmation = () => {
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+    };
 
     function openCreateActivityModal() {
         setIsCreateActivityModalOpen(true);
@@ -32,11 +83,12 @@ export function TripDetailsPage() {
 
     function handleCreateActivity(data: { title: string; date: string }) {
         console.log("Nova atividade:", data);
-        // Aqui você adicionaria a atividade à lista
         setTripStats(prev => ({
             ...prev,
             activities: prev.activities + 1
         }));
+        showToast(`Atividade "${data.title}" criada com sucesso! 🎉`, 'success');
+        closeCreateActivityModal();
     }
 
     function handleGoBack() {
@@ -44,11 +96,30 @@ export function TripDetailsPage() {
     }
 
     function handleExportTrip() {
-        alert("Exportando dados da viagem...");
+        showToast('Exportando dados da viagem... 📥', 'info');
+        // Simular exportação
+        setTimeout(() => {
+            showToast('Viagem exportada com sucesso! ✅', 'success');
+        }, 1500);
     }
 
     function handleShareTrip() {
-        alert("Compartilhando viagem...");
+        showToast('Link de compartilhamento copiado! 📤', 'success');
+    }
+
+    function handleDeleteTrip() {
+        showConfirmation(
+            'Excluir Viagem',
+            'Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.',
+            () => {
+                showToast('Viagem excluída com sucesso', 'success');
+                setTimeout(() => {
+                    navigate('/');
+                }, 1000);
+                hideConfirmation();
+            },
+            'danger'
+        );
     }
 
     return (
@@ -89,6 +160,7 @@ export function TripDetailsPage() {
                             size="sm"
                             onClick={handleExportTrip}
                             className="hidden sm:flex"
+                            disabled={isLoading}
                         >
                             <Download className="size-4" />
                             Exportar
@@ -99,9 +171,21 @@ export function TripDetailsPage() {
                             size="sm"
                             onClick={handleShareTrip}
                             className="hidden sm:flex"
+                            disabled={isLoading}
                         >
                             <Share2 className="size-4" />
                             Compartilhar
+                        </Button>
+
+                        {/* Botão Excluir - Opcional */}
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleDeleteTrip}
+                            className="hidden sm:flex"
+                            disabled={isLoading}
+                        >
+                            Excluir
                         </Button>
                     </div>
                 </div>
@@ -134,17 +218,14 @@ export function TripDetailsPage() {
                                 onClick={openCreateActivityModal}
                                 variant="primary"
                                 className="shrink-0"
+                                disabled={isLoading}
                             >
                                 <Plus className="size-5" />
                                 Cadastrar Atividade
                             </Button>
                         </div>
 
-                        {tripStats.activities > 0 ? (
-                            <Activities />
-                        ) : (
-                            <Activities />
-                        )}
+                        <Activities />
                     </div>
 
                     {/* Coluna Direita - Sidebar */}
@@ -195,6 +276,29 @@ export function TripDetailsPage() {
                     onCreateActivity={handleCreateActivity}
                 />
             )}
+
+            {/* Toast */}
+            {toast.isVisible && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={hideToast}
+                />
+            )}
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                type={confirmationModal.type}
+                onConfirm={() => {
+                    confirmationModal.onConfirm();
+                }}
+                onCancel={hideConfirmation}
+                confirmText={confirmationModal.type === 'danger' ? 'Sim, excluir' : 'Confirmar'}
+                cancelText="Cancelar"
+            />
         </div>
     );
 }
