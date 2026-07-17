@@ -1,6 +1,6 @@
 import {createBrowserRouter, RouterProvider} from "react-router"
 import { CreateTripPage } from "./pages/create-trip"
-import { TripDatailsPage } from "./pages/trip-datails"
+import { TripDetailsPage } from "./pages/trip-datails"
 
 
 
@@ -12,7 +12,7 @@ const router = createBrowserRouter([
 
   {
     path: "/trips/:tripId",
-    element: <TripDatailsPage/>,
+    element: <TripDetailsPage/>,
   }
 
 
