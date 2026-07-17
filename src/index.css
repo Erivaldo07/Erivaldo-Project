@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+*{
+    min-width: 0;
+
+}
