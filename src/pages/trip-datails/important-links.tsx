@@ -1,6 +1,8 @@
 import { Link2, Plus, Trash2, Edit2, Copy, ExternalLink, Link, Clock, MoreVertical } from "lucide-react";
 import { Button } from "../../components/button";
 import { useState } from "react";
+import { Toast } from "../../components/toast";
+import { ConfirmationModal } from "../../components/confirmation-modal";
 
 interface LinkData {
     id: string;
@@ -8,6 +10,12 @@ interface LinkData {
     url: string;
     category?: string;
     createdAt: string;
+}
+
+interface ToastState {
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    isVisible: boolean;
 }
 
 export function ImportantLinks() {
@@ -41,22 +49,76 @@ export function ImportantLinks() {
     const [newUrl, setNewUrl] = useState("");
     const [newCategory, setNewCategory] = useState("");
 
+    // Estado para Toast
+    const [toast, setToast] = useState<ToastState>({
+        message: '',
+        type: 'info',
+        isVisible: false
+    });
+
+    // Estado para Modal de Confirmação
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning' as 'danger' | 'warning' | 'info',
+        onConfirm: () => {},
+        linkId: ''
+    });
+
+    // Handlers do Toast
+    const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+        setToast({ message, type, isVisible: true });
+    };
+
+    const hideToast = () => {
+        setToast(prev => ({ ...prev, isVisible: false }));
+    };
+
+    // Handlers do Modal de Confirmação
+    const showConfirmation = (
+        title: string,
+        message: string,
+        onConfirm: () => void,
+        type: 'danger' | 'warning' | 'info' = 'warning'
+    ) => {
+        setConfirmationModal({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm,
+            linkId: ''
+        });
+    };
+
+    const hideConfirmation = () => {
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+    };
+
     const handleCopyLink = (url: string) => {
         navigator.clipboard.writeText(url);
-        alert("Link copiado para a área de transferência!");
+        showToast('Link copiado para a área de transferência! 📋', 'success');
         setShowMenu(null);
     };
 
-    const handleDeleteLink = (id: string) => {
-        if (confirm("Remover este link?")) {
-            setLinks(links.filter(link => link.id !== id));
-            setShowMenu(null);
-        }
+    const handleDeleteLink = (id: string, title: string) => {
+        showConfirmation(
+            'Remover Link',
+            `Tem certeza que deseja remover o link "${title}"?`,
+            () => {
+                setLinks(links.filter(link => link.id !== id));
+                showToast(`Link "${title}" removido com sucesso!`, 'success');
+                hideConfirmation();
+            },
+            'danger'
+        );
+        setShowMenu(null);
     };
 
     const handleAddLink = () => {
         if (!newTitle.trim() || !newUrl.trim()) {
-            alert("Preencha todos os campos");
+            showToast('Preencha todos os campos obrigatórios', 'warning');
             return;
         }
 
@@ -64,7 +126,7 @@ export function ImportantLinks() {
         try {
             new URL(newUrl);
         } catch {
-            alert("URL inválida. Certifique-se de incluir http:// ou https://");
+            showToast('URL inválida. Certifique-se de incluir http:// ou https://', 'error');
             return;
         }
 
@@ -76,11 +138,12 @@ export function ImportantLinks() {
             createdAt: new Date().toISOString()
         };
 
-        setLinks([...links, newLink]);
+        setLinks([newLink, ...links]);
         setNewTitle("");
         setNewUrl("");
         setNewCategory("");
         setShowAddForm(false);
+        showToast(`Link "${newTitle.trim()}" adicionado com sucesso! 🎉`, 'success');
     };
 
     const formatDate = (dateStr: string) => {
@@ -207,7 +270,7 @@ export function ImportantLinks() {
                                                 </button>
                                                 <div className="h-px bg-zinc-700 my-1" />
                                                 <button
-                                                    onClick={() => handleDeleteLink(link.id)}
+                                                    onClick={() => handleDeleteLink(link.id, link.title)}
                                                     className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-zinc-700 transition-colors flex items-center gap-2"
                                                 >
                                                     <Trash2 className="size-4" />
@@ -290,6 +353,27 @@ export function ImportantLinks() {
                     </div>
                 </div>
             )}
+
+            {/* Toast */}
+            {toast.isVisible && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={hideToast}
+                />
+            )}
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                type={confirmationModal.type}
+                onConfirm={confirmationModal.onConfirm}
+                onCancel={hideConfirmation}
+                confirmText={confirmationModal.type === 'danger' ? 'Sim, remover' : 'Confirmar'}
+                cancelText="Cancelar"
+            />
         </div>
     );
 }
