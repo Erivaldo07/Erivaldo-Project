@@ -143,7 +143,7 @@ export function CreateTripPage() {
             transition={{ delay: 0.2 }}
             className="text-zinc-400 text-lg"
           >
-            Convide seus amigos e planeje viagens inesquecíveis ✨
+            Convide seus amigos e planeje viagens inesquecíveis 
           </motion.p>
         </div>
 
