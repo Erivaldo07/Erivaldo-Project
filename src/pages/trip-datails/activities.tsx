@@ -81,7 +81,7 @@ export function Activities() {
         if (!newActivity.trim() || !newTime.trim()) return;
 
         const newActivityObj: Activity = {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             title: newActivity.trim(),
             time: newTime.trim(),
             completed: false

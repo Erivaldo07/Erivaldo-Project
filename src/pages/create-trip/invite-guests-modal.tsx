@@ -227,7 +227,7 @@ export function InviteGuestsModal({
                             >
                                 {isSubmitting ? (
                                     <span className="flex items-center gap-2">
-                                        <span className="animate-spin">⏳</span>
+
                                         Adicionando...
                                     </span>
                                 ) : isSuccess ? (

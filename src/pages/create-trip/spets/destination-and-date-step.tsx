@@ -6,6 +6,16 @@ interface DestinationAndDateStepProps {
     isGuestsInputOpen: boolean;
     openGuestsInput: () => void;
     closeGuestsInput: () => void;
+
+
+      onTripDataChange: React.Dispatch<
+    React.SetStateAction<{
+      destination: string;
+      startDate: string;
+      endDate: string;
+    }>
+  >;
+
 }
 
 export function DestinationAndDateStep({

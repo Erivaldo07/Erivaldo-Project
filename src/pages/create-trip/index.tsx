@@ -6,11 +6,19 @@ import { InviteGuestsModal } from './invite-guests-modal'
 import { ConfirmTripModal } from './confirm-trip-modal'
 import { DestinationAndDateStep } from './spets/destination-and-date-step'
 import { InviteGuestsSteps } from './spets/invite-guests-steps'
+import { Toast } from '../../components/toast'
+import { ConfirmationModal } from '../../components/confirmation-modal'
 
 interface TripData {
   destination: string;
   startDate: string;
   endDate: string;
+}
+
+interface ToastState {
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  isVisible: boolean;
 }
 
 export function CreateTripPage() {
@@ -26,9 +34,40 @@ export function CreateTripPage() {
     startDate: '',
     endDate: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
 
+  // Estado para Toast
+  const [toast, setToast] = useState<ToastState>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  })
 
-  // Handlers
+  // Estado para Modal de Confirmação
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning' as 'danger' | 'warning' | 'info',
+    onConfirm: () => {}
+  })
+
+  // Handlers do Toast
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setToast({ message, type, isVisible: true })
+  }
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
+
+  // Handlers do Modal de Confirmação
+
+  const hideConfirmation = () => {
+    setConfirmationModal(prev => ({ ...prev, isOpen: false }))
+  }
+
+  // Handlers principais
   const openGuestsInput = () => setIsGuestsInputOpen(true)
   const closeGuestsInput = () => setIsGuestsInputOpen(false)
   const openGuestsModal = () => setIsGuestsModalOpen(true)
@@ -39,11 +78,14 @@ export function CreateTripPage() {
   // FUNÇÃO CORRIGIDA - Agora recebe string diretamente
   const addNewEmailToInvite = (email: string) => {
     if (!email) return
+
     if (emailToInvite.includes(email)) {
-      alert('Este email já foi convidado')
+      showToast('Este email já foi convidado', 'warning')
       return
     }
+
     setEmailToInvite([...emailToInvite, email])
+    showToast('Email adicionado com sucesso!', 'success')
   }
 
   const removeEmailToInvite = (emailToRemove: string) => {
@@ -54,22 +96,27 @@ export function CreateTripPage() {
     event.preventDefault()
 
     if (emailToInvite.length === 0) {
-      alert('Adicione pelo menos um convidado para criar a viagem')
+      showToast('Adicione pelo menos um convidado para criar a viagem', 'warning')
       return
     }
 
-
+    setIsLoading(true)
 
     try {
       await new Promise(resolve => setTimeout(resolve, 2000))
-      navigate('/trips/123')
+      showToast('Viagem criada com sucesso! 🎉', 'success')
+      setTimeout(() => {
+        navigate('/trips/123')
+      }, 500)
     } catch (error) {
       console.error('Erro ao criar viagem:', error)
-      alert('Ocorreu um erro ao criar a viagem. Tente novamente.')
-    
-
+      showToast('Ocorreu um erro ao criar a viagem. Tente novamente.', 'error')
+    } finally {
+      setIsLoading(false)
     }
   }
+
+  // Função para confirmar remoção de todos os convidados
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4">
@@ -96,7 +143,7 @@ export function CreateTripPage() {
             transition={{ delay: 0.2 }}
             className="text-zinc-400 text-lg"
           >
-            Convide seus amigos e planeje viagens inesquecíveis ✨
+            Convide seus amigos e planeje viagens inesquecíveis 
           </motion.p>
         </div>
 
@@ -189,7 +236,7 @@ export function CreateTripPage() {
           <InviteGuestsModal
             emailToInvite={emailToInvite}
             closeGuestsModel={closeGuestsModal}
-            addNewEmailToInvite={addNewEmailToInvite} // Passando a função corrigida
+            addNewEmailToInvite={addNewEmailToInvite}
             removeEmailToInvite={removeEmailToInvite}
           />
         )}
@@ -206,10 +253,33 @@ export function CreateTripPage() {
               endDate: tripData.endDate,
               guestsCount: emailToInvite.length
             }}
-
+            isLoading={isLoading}
           />
         )}
       </AnimatePresence>
+
+      {/* Toast */}
+      {toast.isVisible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        type={confirmationModal.type}
+        onConfirm={() => {
+          confirmationModal.onConfirm()
+        }}
+        onCancel={hideConfirmation}
+        confirmText="Sim, remover"
+        cancelText="Cancelar"
+      />
     </div>
   )
 }

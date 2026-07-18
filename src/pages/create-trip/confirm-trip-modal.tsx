@@ -11,12 +11,13 @@ interface ConfirmTripModalProps {
         endDate: string;
         guestsCount: number;
     };
+    isLoading: boolean;
 }
 
 export function ConfirmTripModal({
     closeConfirmTripModal,
     createTrip,
-    tripData
+    tripData,
 }: ConfirmTripModalProps) {
 
     const [isLoading, setIsLoading] = useState(false);
